@@ -5,8 +5,12 @@ import java.util.*;
 
 public class AirportCode {
 
-  private static final String airportCodeFile = "GlobalAirportDatabase.txt";
+  private static final String airportCodeFile = "src/main/java/org/hackreduce/examples/flights/GlobalAirportDatabase.txt";
   private static HashMap<String, String> table;
+
+  public AirportCode () {
+    this.table = null;
+  }
 
   public static String lookup(String airportCode) {
     getTable();
@@ -28,7 +32,7 @@ public class AirportCode {
         String[] data = line.split(":");
         String latDeg = convertToDeg(data[5], data[6], data[7], data[8]);
         String longDeg = convertToDeg(data[9], data[10], data[11], data[12]);
-        table.put(data[0], latDeg + " " + longDeg);
+        table.put(data[1], latDeg + " " + longDeg);
       }
       br.close();
     } catch (Exception e) {
@@ -41,6 +45,6 @@ public class AirportCode {
     if (dir.charAt(0) == 'W' || dir.charAt(0) == 'S') {
       degrees *= -1;
     }
-    return Double.toString(degrees);
+    return Double.toString(Math.round(degrees * 100) / 100.0);
   }
 }

@@ -44,10 +44,10 @@ public class FlightFreqCounter extends Configured implements Tool {
 
       String keystring;
       if (record.getOrigin().compareTo(record.getDestination()) < 0) {
-        keystring = record.getOrigin() + " " + record.getDestination();
+        keystring = record.getOrigin() + " " + AirportCode.lookup(record.getOrigin()) + " " + record.getDestination() + " " + AirportCode.lookup(record.getDestination());
       }
       else {
-        keystring = record.getDestination() + " " + record.getOrigin();
+        keystring = record.getDestination() + " " + AirportCode.lookup(record.getDestination()) + " " + record.getOrigin() + " " + AirportCode.lookup(record.getOrigin());
       }
 
 			context.write(new Text(keystring), new LongWritable(record.getDepartureTime().getTime()));
