@@ -1,4 +1,4 @@
-package org.hackreduce.examples;
+package org.hackreduce.examples.flights;
 
 import java.io.IOException;
 
@@ -14,37 +14,72 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.hackreduce.mappers.ModelMapper;
+import org.hackreduce.mappers.FlightMapper;
+import org.hackreduce.models.FlightRecord;
+
+import java.util.Set;
+import java.util.HashSet;
 
 /**
- * This MapReduce job will count the total number of Bixi records in the data dump.
+ * This MapReduce job will count the frequency of flights between airports 
  *
  */
-public abstract class RecordCounter extends Configured implements Tool {
+public class FlightFreqCounter extends Configured implements Tool {
 
-	public enum RecordCounterCount {
+	public enum FlightFreqCounterCount {
 		UNIQUE_KEYS
 	}
+  
+  public enum Count {
+		TOTAL_RECORDS
+	}
 
-	public static class RecordCounterReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+	public static class FlightFreqMapper extends FlightMapper<Text, LongWritable> {
 
 		@Override
-		protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
-			context.getCounter(RecordCounterCount.UNIQUE_KEYS).increment(1);
+		protected void map(FlightRecord record, Context context) throws IOException,
+				InterruptedException {
 
-			long count = 0;
+			context.getCounter(Count.TOTAL_RECORDS).increment(1);
 
-			for (LongWritable value : values) {
-				count += value.get();
-			}
+      String keystring;
+      if (record.getOrigin().compareTo(record.getDestination()) < 0) {
+        keystring = record.getOrigin() + " " + record.getDestination();
+      }
+      else {
+        keystring = record.getDestination() + " " + record.getOrigin();
+      }
 
-			context.write(key, new LongWritable(count));
+			context.write(new Text(keystring), new LongWritable(record.getDepartureTime().getTime()));
 		}
 
 	}
 
-	public abstract Class<? extends ModelMapper<?,?,?,?,?>> getMapper();
 
-	public abstract void configureJob(Job job);
+	public static class FlightFreqCounterReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+
+		@Override
+		protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+			context.getCounter(FlightFreqCounterCount.UNIQUE_KEYS).increment(1);
+
+      Set <LongWritable> departureTimes = new HashSet <LongWritable> ();
+
+			for (LongWritable value : values) {
+        departureTimes.add(value);
+			}
+
+			context.write(key, new LongWritable(departureTimes.size()));
+		}
+
+	}
+
+	public Class<? extends ModelMapper<?,?,?,?,?>> getMapper() {
+    return FlightFreqMapper.class;
+  }
+
+	public void configureJob(Job job) {
+    FlightFreqMapper.configureJob(job);
+  }
 
 	@Override
 	public int run(String[] args) throws Exception {
@@ -62,7 +97,7 @@ public abstract class RecordCounter extends Configured implements Tool {
 
         // Tell the job which Mapper and Reducer to use (classes defined above)
         job.setMapperClass(getMapper());
-		job.setReducerClass(RecordCounterReducer.class);
+		job.setReducerClass(FlightFreqCounterReducer.class);
 
         configureJob(job);
 
