@@ -1,4 +1,7 @@
 # /
+*swp
+.gitignore
+*~
 /bin
 /.classpath
 /.loadpath
