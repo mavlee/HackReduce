@@ -10,3 +10,6 @@
 /dist
 /junit
 /nbproject
+*.swp
+*~
+/src/main/java/org/hackreduce/examples/*/.gradle/

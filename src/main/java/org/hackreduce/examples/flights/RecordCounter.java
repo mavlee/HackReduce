@@ -36,7 +36,16 @@ public class RecordCounter extends org.hackreduce.examples.RecordCounter {
 				InterruptedException {
 
 			context.getCounter(Count.TOTAL_RECORDS).increment(1);
-			context.write(TOTAL_COUNT, ONE_COUNT);
+
+      String keystring;
+      if (record.getOrigin().compareTo(record.getDestination()) < 0) {
+        keystring = record.getOrigin() + " " + record.getDestination();
+      }
+      else {
+        keystring = record.getDestination() + " " + record.getOrigin();
+      }
+      //keystring = keystring + " " + record.getDepartureTime();
+			context.write(new Text(keystring), new LongWritable(record.getDepartureTime().getTime()));
 		}
 
 	}

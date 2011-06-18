@@ -15,6 +15,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.hackreduce.mappers.ModelMapper;
 
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * This MapReduce job will count the total number of Bixi records in the data dump.
@@ -33,11 +35,14 @@ public abstract class RecordCounter extends Configured implements Tool {
 			context.getCounter(RecordCounterCount.UNIQUE_KEYS).increment(1);
 
 			long count = 0;
+      Set <LongWritable> departureTimes = new HashSet <LongWritable> ();
+
 			for (LongWritable value : values) {
-				count += value.get();
+				//count += value.get();
+        departureTimes.add(value);
 			}
 
-			context.write(key, new LongWritable(count));
+			context.write(key, new LongWritable(departureTimes.size()));
 		}
 
 	}
